@@ -484,6 +484,7 @@ footer {
   color: #74808a;
   margin: 0 0 15px 0;
   font-size: 0.9em;
+  text-align: justify;
 }
 .no-image .project-info {
   position: relative;
