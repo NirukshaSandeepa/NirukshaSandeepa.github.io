@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Github, 
   Linkedin, 
@@ -8,29 +8,16 @@ import {
   Code, 
   Database, 
   Cloud, 
-  Cpu, 
   Trophy, 
   BookOpen, 
   Menu, 
   X,
   ChevronRight,
   MapPin,
-  Phone,
-  MessageSquare,
-  Send,
-  Sparkles,
-  Bot,
-  Minimize2,
-  Loader2,
-  Copy,
-  Check,
-  Brain,
   Users,
+  Brain,
   Lightbulb
 } from 'lucide-react';
-
-// --- Configuration ---
-const GEMINI_API_KEY = ""; // System provides this at runtime
 
 // --- Data based on the user's latest update ---
 const portfolioData = {
@@ -40,12 +27,12 @@ const portfolioData = {
     subtitle: "Software Engineering Enthusiast | Full Stack Developer",
     email: "akshith.21@cse.mrt.ac.lk",
     phone: "+94 767 555 080",
-    location: "Moratuwa, Sri Lanka",
-    shortBio: "I enjoy tackling complex problems and transforming ideas into real-world applications through clean design and efficient engineering.",
+    location: "Matara, Sri Lanka",
+    shortBio: "I enjoy tackling complex problems and transforming ideas into real world applications through clean design and efficient engineering.",
     about: [
-      "I’m a final year Computer Science & Engineering undergraduate at the University of Moratuwa, Sri Lanka, passionate about building impactful, scalable software solutions. I enjoy tackling complex problems and transforming ideas into real-world applications through clean design and efficient engineering.",
-      "Beyond academics, I serve as the Batch Representative of the 21st batch at the Department of Computer Science and Engineering. In this role, I work closely with students, faculty, and administration, strengthening my leadership, communication, and collaboration skills while driving initiatives that benefit the academic community.",
-      "I’m also an International Rated Chess Player, having represented Sri Lanka at international and Asian championships. Competitive chess has sharpened my strategic thinking, analytical reasoning, and ability to make sound decisions under pressure—skills that naturally translate into software engineering and system design."
+      "I’m a final year Computer Science & Engineering undergraduate at the University of Moratuwa, Sri Lanka, passionate about building impactful, scalable software solutions. I enjoy tackling complex problems and transforming ideas into real world applications through clean design and efficient engineering.",
+      "Beyond academics, I serve as the Batch Representative of the 21st batch at the Department of Computer Science and Engineering. In this role, I work closely with students, faculty and administration, strengthening my leadership, communication and collaboration skills while driving initiatives that benefit the academic community.",
+      "I’m also an International Rated Chess Player, having represented Sri Lanka at international and Asian championships. Competitive chess has sharpened my strategic thinking, analytical reasoning and ability to make sound decisions under pressure skills that naturally translate into software engineering and system design."
     ],
     links: {
       github: "https://github.com/NirukshaSandeepa",
@@ -196,269 +183,7 @@ const portfolioData = {
   ]
 };
 
-// --- Gemini API Helper ---
-const callGeminiAPI = async (prompt, systemInstruction = "") => {
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          systemInstruction: { parts: [{ text: systemInstruction }] },
-        }),
-      }
-    );
-
-    if (!response.ok) throw new Error("API call failed");
-
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't generate a response.";
-  } catch (error) {
-    console.error("Gemini API Error:", error);
-    return "Sorry, I'm having trouble connecting to the AI service right now. Please try again later.";
-  }
-};
-
 // --- Components ---
-
-const ChatWidget = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { role: 'assistant', text: "Hi! I'm Niruksha's AI assistant. Ask me anything about his projects, skills, or experience! ✨" }
-  ]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSend = async () => {
-    if (!input.trim()) return;
-
-    const userMessage = input;
-    setInput("");
-    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
-    setIsLoading(true);
-
-    const systemPrompt = `
-      You are an AI assistant for Niruksha Akshith Sandeepa's portfolio website. 
-      Your goal is to answer questions about Niruksha based STRICTLY on the following JSON data:
-      ${JSON.stringify(portfolioData)}
-      
-      Guidelines:
-      1. Be professional, enthusiastic, and concise.
-      2. If asked about something not in the data, say "I don't have information about that in the portfolio, but you can contact Niruksha directly!"
-      3. Highlight his key strengths: Full stack dev, Chess achievements (Rating 1922), and his specific projects like the Wind Effect Visualization.
-      4. Keep responses short (under 3 sentences) unless asked for a detailed explanation.
-    `;
-
-    const aiResponse = await callGeminiAPI(userMessage, systemPrompt);
-
-    setMessages(prev => [...prev, { role: 'assistant', text: aiResponse }]);
-    setIsLoading(false);
-  };
-
-  return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-      {isOpen && (
-        <div className="mb-4 w-80 md:w-96 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up">
-          {/* Header */}
-          <div className="bg-slate-800 p-4 flex justify-between items-center border-b border-slate-700">
-            <div className="flex items-center gap-2">
-              <div className="bg-emerald-500/20 p-1.5 rounded-lg">
-                <Bot size={18} className="text-emerald-400" />
-              </div>
-              <div>
-                <h3 className="text-white font-bold text-sm">Portfolio Assistant</h3>
-                <p className="text-slate-400 text-xs">Powered by Gemini AI ✨</p>
-              </div>
-            </div>
-            <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white">
-              <Minimize2 size={18} />
-            </button>
-          </div>
-
-          {/* Messages */}
-          <div className="h-80 overflow-y-auto p-4 space-y-4 bg-slate-900/95">
-            {messages.map((msg, idx) => (
-              <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div 
-                  className={`max-w-[85%] p-3 rounded-2xl text-sm ${
-                    msg.role === 'user' 
-                      ? 'bg-emerald-600 text-white rounded-br-none' 
-                      : 'bg-slate-800 text-slate-200 rounded-bl-none border border-slate-700'
-                  }`}
-                >
-                  {msg.text}
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-slate-800 p-3 rounded-2xl rounded-bl-none border border-slate-700 flex items-center gap-2">
-                  <Loader2 size={16} className="animate-spin text-emerald-400" />
-                  <span className="text-xs text-slate-400">Thinking...</span>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input */}
-          <div className="p-3 bg-slate-800 border-t border-slate-700">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="Ask about my skills..."
-                className="flex-1 bg-slate-900 text-white text-sm rounded-xl px-4 py-2 focus:outline-none focus:ring-1 focus:ring-emerald-500 border border-slate-700 placeholder:text-slate-600"
-              />
-              <button 
-                onClick={handleSend}
-                disabled={isLoading || !input.trim()}
-                className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white p-2 rounded-xl transition-colors"
-              >
-                <Send size={18} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="group flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-3 rounded-full shadow-lg shadow-emerald-500/20 transition-all hover:-translate-y-1"
-      >
-        {isOpen ? <X size={24} /> : <MessageSquare size={24} />}
-        {!isOpen && <span className="font-medium">Ask AI</span>}
-      </button>
-    </div>
-  );
-};
-
-const CoverLetterGenerator = () => {
-  const [company, setCompany] = useState("");
-  const [role, setRole] = useState("");
-  const [generatedLetter, setGeneratedLetter] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const handleGenerate = async () => {
-    if (!company || !role) return;
-    
-    setIsGenerating(true);
-    setGeneratedLetter("");
-    
-    const prompt = `
-      Write a compelling, professional cover letter for Niruksha Akshith Sandeepa applying for the position of ${role} at ${company}.
-      
-      Use the following portfolio data to customize the letter:
-      ${JSON.stringify(portfolioData)}
-      
-      Requirements:
-      1. Mention specific projects from the data that are relevant to the role of ${role}.
-      2. Highlight his technical skills (React, Java, etc.) and soft skills (leadership as Batch Rep).
-      3. Mention his competitive mindset from Chess (Rating 1922).
-      4. Keep the tone enthusiastic but professional.
-      5. Limit to 200 words.
-      6. Start with "Dear Hiring Manager,".
-    `;
-
-    const text = await callGeminiAPI(prompt);
-    setGeneratedLetter(text);
-    setIsGenerating(false);
-  };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(generatedLetter);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className="bg-slate-800/50 rounded-2xl border border-slate-700 p-6 md:p-8 mt-12">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="bg-purple-500/20 p-2 rounded-lg">
-          <Sparkles className="text-purple-400" size={24} />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-white">AI Cover Letter Generator</h3>
-          <p className="text-slate-400 text-sm">Recruiters: See how I fit your role instantly.</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Company Name</label>
-          <input 
-            type="text" 
-            value={company}
-            onChange={(e) => setCompany(e.target.value)}
-            placeholder="e.g., Google"
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition-colors"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Job Role</label>
-          <input 
-            type="text" 
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            placeholder="e.g., Frontend Engineer"
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition-colors"
-          />
-        </div>
-      </div>
-
-      <button 
-        onClick={handleGenerate}
-        disabled={!company || !role || isGenerating}
-        className="w-full bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-emerald-500/20 flex justify-center items-center gap-2 mb-6"
-      >
-        {isGenerating ? (
-          <>
-            <Loader2 className="animate-spin" size={20} />
-            <span>Crafting Letter...</span>
-          </>
-        ) : (
-          <>
-            <Sparkles size={20} />
-            <span>Generate Cover Letter</span>
-          </>
-        )}
-      </button>
-
-      {generatedLetter && (
-        <div className="bg-slate-900 rounded-xl p-6 border border-slate-700 relative animate-fade-in-up">
-          <button 
-            onClick={copyToClipboard}
-            className="absolute top-4 right-4 p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors"
-            title="Copy to clipboard"
-          >
-            {copied ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} />}
-          </button>
-          <div className="prose prose-invert prose-sm max-w-none">
-            <p className="whitespace-pre-wrap text-slate-300 leading-relaxed font-light">
-              {generatedLetter}
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -495,7 +220,7 @@ const Navigation = () => {
               <a 
                 key={link.name} 
                 href={link.href}
-                className="text-slate-300 hover:text-emerald-400 transition-colors text-sm font-medium uppercase tracking-wider"
+                className="text-slate-100 hover:text-emerald-400 transition-colors text-sm font-medium uppercase tracking-wider"
               >
                 {link.name}
               </a>
@@ -520,7 +245,7 @@ const Navigation = () => {
                 key={link.name}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
-                className="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded-md"
+                className="block px-3 py-2 text-base font-medium text-slate-100 hover:text-white hover:bg-slate-700 rounded-md"
               >
                 {link.name}
               </a>
@@ -543,7 +268,7 @@ const Hero = () => {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="space-y-6 animate-fade-in-up">
           <h2 className="text-emerald-400 font-medium tracking-widest uppercase text-sm md:text-base">
-            Software Engineering Undergraduate
+            Computer Science & Engineering Undergraduate
           </h2>
           <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight mb-6">
             Hi, I'm <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">{portfolioData.personal.name.split(' ')[0]}</span>
@@ -558,7 +283,8 @@ const Hero = () => {
               href={portfolioData.personal.links.github} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-full transition-all hover:-translate-y-1 border border-slate-700"
+              className="flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 rounded-full transition-all hover:-translate-y-1 border border-slate-700"
+              style={{ color: '#f8fafc' }}
             >
               <Github size={20} />
               <span>GitHub</span>
@@ -567,14 +293,16 @@ const Hero = () => {
               href={portfolioData.personal.links.linkedin} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-all hover:-translate-y-1 shadow-lg shadow-blue-500/20"
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-full transition-all hover:-translate-y-1 shadow-lg shadow-blue-500/20"
+              style={{ color: '#f8fafc' }}
             >
               <Linkedin size={20} />
               <span>LinkedIn</span>
             </a>
             <a 
               href="#contact"
-              className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full transition-all hover:-translate-y-1 shadow-lg shadow-emerald-500/20"
+              className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 rounded-full transition-all hover:-translate-y-1 shadow-lg shadow-emerald-500/20"
+              style={{ color: '#f8fafc' }}
             >
               <Mail size={20} />
               <span>Contact Me</span>
@@ -605,15 +333,15 @@ const About = () => {
             <div className="flex items-center gap-3">
               <Users className="text-emerald-400" size={24} />
               <div>
-                <h4 className="font-bold text-white">Batch Representative</h4>
-                <p className="text-sm text-slate-400">Leadership & Teamwork</p>
+                <h4 className="font-bold text-white">Department Representative</h4>
+                <p className="text-sm text-slate-400">CSE Department</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Brain className="text-emerald-400" size={24} />
               <div>
-                <h4 className="font-bold text-white">Chess Captain</h4>
-                <p className="text-sm text-slate-400">Strategic Thinking</p>
+                <h4 className="font-bold text-white">International Chess Rated Player</h4>
+                <p className="text-sm text-slate-400">FIDE Rating: 1922</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -824,7 +552,7 @@ const App = () => {
                 </h3>
                 <ul className="space-y-3">
                   {portfolioData.articles.map((article, i) => (
-                    <li key={i} className="flex items-center gap-2 text-slate-400 hover:text-emerald-400 transition-colors cursor-pointer">
+                    <li key={i} className="flex items-center gap-2 text-slate-200 hover:text-emerald-400 transition-colors cursor-pointer">
                       <ChevronRight size={16} />
                       <a href={portfolioData.personal.links.medium} target="_blank" rel="noopener noreferrer">
                         {article}
@@ -833,9 +561,6 @@ const App = () => {
                   ))}
                 </ul>
               </div>
-
-              {/* Cover Letter Generator Added Here */}
-              <CoverLetterGenerator />
             </div>
 
             {/* Contact Column */}
@@ -881,11 +606,12 @@ const App = () => {
               {/* Formspree Contact Form */}
               <div className="mt-12 pt-8 border-t border-slate-800">
                 <h4 className="text-lg font-bold text-white mb-4">Send a Message</h4>
-                <form action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST" className="space-y-4">
+                <form action="https://formspree.io/f/mnnaqrqj" method="POST" className="space-y-4">
+                  <input type="hidden" name="_subject" value="Contact request from personal website" />
                   <div>
                     <input 
                       type="email" 
-                      name="email"
+                      name="_replyto"
                       placeholder="Your Email" 
                       required
                       className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500"
@@ -903,9 +629,6 @@ const App = () => {
                   <button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-lg transition-colors">
                     Send Message
                   </button>
-                  <p className="text-xs text-slate-500 text-center mt-2">
-                    Powered by Formspree. Replace URL in code with your form ID.
-                  </p>
                 </form>
               </div>
 
@@ -918,8 +641,6 @@ const App = () => {
           </div>
         </div>
       </section>
-
-      <ChatWidget />
     </div>
   );
 };
